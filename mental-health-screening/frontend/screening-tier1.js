@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'https://do-an-0973.onrender.com/api';
+const API_BASE_URL = 'https://tamkhoe-backend.onrender.com/api';
 
 // Behavior tracking data
 const behaviorData = [];
