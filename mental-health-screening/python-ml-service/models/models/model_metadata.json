@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "trained_at": "2026-02-27T09:24:46.300056",
+  "n_features": 20,
+  "feature_names": [
+    "avg_response_time",
+    "response_time_variance",
+    "total_changes",
+    "hesitation_score",
+    "consistency_score",
+    "extreme_ratio",
+    "neutral_ratio",
+    "phq_total_score",
+    "gad_total_score",
+    "age",
+    "gender_encoded",
+    "occupation_encoded",
+    "education_encoded",
+    "marital_encoded",
+    "income_encoded",
+    "living_encoded",
+    "has_chronic_illness",
+    "sleep_hours_avg",
+    "exercise_encoded",
+    "social_support_level"
+  ],
+  "n_estimators": 200,
+  "max_depth": 20,
+  "classes": [
+    "LOW_RISK",
+    "MODERATE_RISK",
+    "HIGH_RISK",
+    "CRITICAL_RISK"
+  ],
+  "feature_importance": {
+    "avg_response_time": 0.19380505250297964,
+    "response_time_variance": 0.19792447462407856,
+    "total_changes": 0.23632416271709727,
+    "hesitation_score": 0.03988057133128205,
+    "consistency_score": 0.08057723702642326,
+    "extreme_ratio": 0.07420865422545417,
+    "neutral_ratio": 0.041478225114266444,
+    "phq_total_score": 0.06159935598206316,
+    "gad_total_score": 0.04567718937080153,
+    "age": 0.002105045230530358,
+    "gender_encoded": 0.000164889284948265,
+    "occupation_encoded": 0.0007222815472487634,
+    "education_encoded": 0.00017839125623846019,
+    "marital_encoded": 0.00034001956700886873,
+    "income_encoded": 0.00036033105828379796,
+    "living_encoded": 0.00020260417516887759,
+    "has_chronic_illness": 0.0007059923154640946,
+    "sleep_hours_avg": 0.008435597481738463,
+    "exercise_encoded": 0.0008751148148914578,
+    "social_support_level": 0.014434810374032653
+  },
+  "feature_groups": {
+    "behavioral": [
+      "avg_response_time",
+      "response_time_variance",
+      "total_changes",
+      "hesitation_score",
+      "consistency_score",
+      "extreme_ratio",
+      "neutral_ratio"
+    ],
+    "tier1_scores": [
+      "phq_total_score",
+      "gad_total_score"
+    ],
+    "demographics": [
+      "age",
+      "gender_encoded",
+      "occupation_encoded",
+      "education_encoded",
+      "marital_encoded",
+      "income_encoded",
+      "living_encoded",
+      "has_chronic_illness",
+      "sleep_hours_avg",
+      "exercise_encoded",
+      "social_support_level"
+    ]
+  }
+}

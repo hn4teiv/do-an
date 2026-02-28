@@ -1,0 +1,101 @@
+{
+  "version": "3.0.0",
+  "trained_at": "2026-02-27T14:51:44.949840",
+  "n_features": 23,
+  "feature_names": [
+    "avg_response_time",
+    "response_time_variance",
+    "total_changes",
+    "hesitation_score",
+    "consistency_score",
+    "max_severity_ratio",
+    "min_severity_ratio",
+    "neutral_ratio",
+    "phq_total_score",
+    "gad_total_score",
+    "phq_gad_product",
+    "combined_severity",
+    "age",
+    "gender_encoded",
+    "occupation_encoded",
+    "education_encoded",
+    "marital_encoded",
+    "income_encoded",
+    "living_encoded",
+    "has_chronic_illness",
+    "sleep_hours_avg",
+    "exercise_encoded",
+    "social_support_level"
+  ],
+  "classes": [
+    "LOW_RISK",
+    "MODERATE_RISK",
+    "HIGH_RISK",
+    "CRITICAL_RISK"
+  ],
+  "confidence_threshold": 0.6,
+  "feature_importance": {
+    "avg_response_time": 0.14568251133392807,
+    "response_time_variance": 0.13899276241643496,
+    "total_changes": 0.20558466785221136,
+    "hesitation_score": 0.03213542229389925,
+    "consistency_score": 0.04990393435166331,
+    "max_severity_ratio": 0.04861342930370811,
+    "min_severity_ratio": 0.029778865954231747,
+    "neutral_ratio": 0.002205639208502658,
+    "phq_total_score": 0.045235672416766355,
+    "gad_total_score": 0.0440962989521486,
+    "phq_gad_product": 0.11287722301369613,
+    "combined_severity": 0.12265389335302769,
+    "age": 0.0014595534149511196,
+    "gender_encoded": 0.0002704345239854894,
+    "occupation_encoded": 0.000908634875122659,
+    "education_encoded": 0.0005491933262258454,
+    "marital_encoded": 0.0003908724892857072,
+    "income_encoded": 0.0010092899411621049,
+    "living_encoded": 0.0007887048920853955,
+    "has_chronic_illness": 0.00041748950958683546,
+    "sleep_hours_avg": 0.007001381330862002,
+    "exercise_encoded": 0.0012321348832714386,
+    "social_support_level": 0.008211990363243
+  },
+  "feature_groups": {
+    "behavioral": [
+      "avg_response_time",
+      "response_time_variance",
+      "total_changes",
+      "hesitation_score",
+      "consistency_score",
+      "max_severity_ratio",
+      "min_severity_ratio",
+      "neutral_ratio"
+    ],
+    "tier1_scores": [
+      "phq_total_score",
+      "gad_total_score",
+      "phq_gad_product",
+      "combined_severity"
+    ],
+    "demographics": [
+      "age",
+      "gender_encoded",
+      "occupation_encoded",
+      "education_encoded",
+      "marital_encoded",
+      "income_encoded",
+      "living_encoded",
+      "has_chronic_illness",
+      "sleep_hours_avg",
+      "exercise_encoded",
+      "social_support_level"
+    ]
+  },
+  "improvements_v3": [
+    "Split extreme_ratio -> max_severity_ratio + min_severity_ratio",
+    "SMOTE oversampling for CRITICAL class",
+    "Pipeline-based CV (no data leakage)",
+    "Interaction features: phq_gad_product + combined_severity",
+    "CalibratedClassifierCV (isotonic) for reliable probabilities",
+    "Confidence threshold floor (< 60% -> clinical floor applies)"
+  ]
+}
