@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký - TâmKhỏe</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #fff; min-height: 100vh; display: flex; flex-direction: column; color: #1a1a2e; }
+        .site-header { height: 60px; display: flex; align-items: center; padding: 0 40px; border-bottom: 1px solid #f0f0f0; background: #fff; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.05em; font-weight: 700; color: #1a1a2e; letter-spacing: -0.5px; text-decoration: none; }
+        .logo span { color: #5c5fd6; }
+        .page-wrapper { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+        .left-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 40px 80px 100px; }
+        h1 { font-size: 2em; font-weight: 700; line-height: 1.3; color: #1a1a2e; margin-bottom: 8px; letter-spacing: -0.4px; }
+        .subtitle { color: #777; font-size: 0.95em; margin-bottom: 36px; }
+        .form-group { margin-bottom: 22px; }
+        label { display: block; font-weight: 600; font-size: 0.92em; color: #333; margin-bottom: 8px; }
+        label .required { color: #e05; }
+        input, select { width: 100%; padding: 12px 16px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 0.95em; font-family: 'DM Sans', sans-serif; color: #1a1a2e; background: white; transition: border-color 0.18s, box-shadow 0.18s; appearance: none; }
+        input:focus, select:focus { outline: none; border-color: #5c5fd6; box-shadow: 0 0 0 3px rgba(92,95,214,0.1); }
+        input::placeholder { color: #bbb; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .pill-options { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pill-option input[type="radio"] { display: none; }
+        .pill-option label { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: white; border: 1.5px solid #ddd; border-radius: 50px; cursor: pointer; font-size: 0.9em; font-weight: 500; color: #444; transition: all 0.18s ease; user-select: none; margin-bottom: 0; }
+        .pill-option label::before { content: ''; width: 15px; height: 15px; border: 1.5px solid #ccc; border-radius: 50%; display: inline-block; flex-shrink: 0; background: white; transition: all 0.18s ease; }
+        .pill-option input[type="radio"]:checked + label { background: #f0f0ff; border-color: #5c5fd6; color: #3a3dbf; }
+        .pill-option input[type="radio"]:checked + label::before { background: #5c5fd6; border-color: #5c5fd6; box-shadow: inset 0 0 0 3px white; }
+        .pill-option label:hover { border-color: #5c5fd6; background: #f7f7ff; }
+        .help-text { font-size: 0.8em; color: #999; margin-top: 5px; }
+        .btn { width: 100%; padding: 14px; background: #5c5fd6; color: white; border: none; border-radius: 50px; font-size: 0.98em; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s ease; margin-top: 8px; }
+        .btn:hover { background: #4a4dbf; box-shadow: 0 6px 20px rgba(92,95,214,0.35); transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .link-row { text-align: center; font-size: 0.9em; color: #777; margin-top: 16px; }
+        .link-row a { color: #5c5fd6; font-weight: 600; text-decoration: none; }
+        .link-row a:hover { text-decoration: underline; }
+        .error { background: #fff0f0; border: 1.5px solid #fbb; color: #c00; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88em; display: none; }
+        .success { background: #f0fff4; border: 1.5px solid #6ee7b7; color: #065f46; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88em; display: none; }
+        .loading { text-align: center; padding: 16px; display: none; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #5c5fd6; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.9s linear infinite; margin: 0 auto 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .progress-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 16px 36px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f0f0; }
+        .progress-label { font-size: 0.82em; font-weight: 600; color: #888; }
+        .progress-bar-wrap { flex: 1; margin: 0 20px; height: 4px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 25%; background: #5c5fd6; border-radius: 4px; }
+        .right-panel { flex: 0 0 30%; background: #f5f3ef; display: flex; align-items: center; justify-content: center; min-height: 0; }
+        .right-inner { text-align: center; padding: 40px; }
+        .illustration { font-size: 6em; margin-bottom: 20px; animation: float 4s ease-in-out infinite; display: block; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        .right-text { color: #666; font-size: 0.95em; line-height: 1.7; font-weight: 500; }
+        @media (max-width: 860px) { .right-panel { display: none; } .left-panel { padding: 40px 28px 100px; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a href="index.html" class="logo">🧠 <span>Tâm</span>Khỏe</a>
+    </header>
+    <div class="page-wrapper">
+        <div class="left-panel">
+            <h1>Bước 1 / 4<br>Tạo tài khoản</h1>
+            <p class="subtitle">Điền thông tin để bắt đầu và lưu lịch sử sàng lọc</p>
+
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p style="color:#777; font-size:0.88em;">Đang tạo tài khoản...</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Họ và Tên <span class="required">*</span></label>
+                    <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn A" autocomplete="name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" id="email" required placeholder="example@gmail.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật Khẩu <span class="required">*</span></label>
+                        <input type="password" id="password" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+                        <div class="help-text">Ít nhất 6 ký tự</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tuổi <span class="required">*</span></label>
+                        <input type="number" id="age" required min="13" max="120" placeholder="13–120">
+                    </div>
+                    <div class="form-group">
+                        <label>Số Điện Thoại</label>
+                        <input type="tel" id="phoneNumber" placeholder="0901234567">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Giới Tính <span class="required">*</span></label>
+                    <div class="pill-options">
+                        <div class="pill-option">
+                            <input type="radio" name="gender" value="MALE" id="gender_male">
+                            <label for="gender_male">Nam</label>
+                        </div>
+                        <div class="pill-option">
+                            <input type="radio" name="gender" value="FEMALE" id="gender_female">
+                            <label for="gender_female">Nữ</label>
+                        </div>
+                        <div class="pill-option">
+                            <input type="radio" name="gender" value="OTHER" id="gender_other">
+                            <label for="gender_other">Khác</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">Tạo Tài Khoản →</button>
+            </form>
+
+            <div class="link-row">
+                Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="right-inner">
+                <span class="illustration">📝</span>
+                <p class="right-text">Thông tin của bạn<br>được <strong>bảo mật tuyệt đối</strong><br>và chỉ dùng cho sàng lọc</p>
+            </div>
+        </div>
+
+        <div class="progress-footer">
+            <span class="progress-label">Bước 1 / 4</span>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill"></div></div>
+            <span class="progress-label">Đăng ký</span>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8080/api';
+
+        // Đã đăng nhập → bỏ qua
+        if (localStorage.getItem('authToken')) {
+            window.location.href = 'screening-tier1.html';
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName    = document.getElementById('fullName').value.trim();
+            const email       = document.getElementById('email').value.trim();
+            const password    = document.getElementById('password').value;
+            const age         = parseInt(document.getElementById('age').value);
+            const gender      = document.querySelector('input[name="gender"]:checked')?.value || '';
+            const phoneNumber = document.getElementById('phoneNumber').value.trim() || null;
+
+            // Validate
+            if (!fullName)          { showError('Vui lòng nhập họ tên'); return; }
+            if (!email)             { showError('Vui lòng nhập email'); return; }
+            if (password.length < 6){ showError('Mật khẩu phải ít nhất 6 ký tự'); return; }
+            if (age < 13 || age > 120) { showError('Tuổi phải từ 13–120'); return; }
+            if (!gender)            { showError('Vui lòng chọn giới tính'); return; }
+
+            showLoading(true);
+            try {
+                const res  = await fetch(`${API}/auth/register`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ fullName, email, password, age, gender, phoneNumber })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Lưu token + thông tin
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userId',   data.userId);
+                    localStorage.setItem('userName', data.fullName);
+                    localStorage.setItem('userEmail', data.email);
+
+                    showSuccess('Tạo tài khoản thành công! Đang chuyển hướng...');
+                    setTimeout(() => { window.location.href = 'screening-tier1.html'; }, 1000);
+                } else {
+                    showError(data.message || 'Có lỗi xảy ra khi đăng ký');
+                }
+            } catch {
+                showError('Không thể kết nối đến server');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg; el.style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+        }
+        function showSuccess(msg) {
+            const el = document.getElementById('success');
+            el.textContent = msg; el.style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+        function showLoading(on) {
+            document.getElementById('loading').style.display = on ? 'block' : 'none';
+            document.getElementById('submitBtn').disabled = on;
+        }
+    </script>
+</body>
+</html>

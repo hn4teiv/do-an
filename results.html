@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Sàng Lọc</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+
+        .logo {
+            position: fixed;
+            top: 28px;
+            left: 36px;
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #1a1a2e;
+            z-index: 10;
+        }
+        .logo span { color: #5c5fd6; }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 40px 40px 60px;
+        }
+
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 80px 40px;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #5c5fd6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* HEADER */
+        .result-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .result-header h1 {
+            font-size: 2em;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            margin-bottom: 6px;
+        }
+
+        .result-header .sub {
+            color: #888;
+            font-size: 0.95em;
+        }
+
+        /* ALERT BADGE */
+        .alert-badge-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .alert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+
+        .alert-green { background: #d1fae5; color: #065f46; }
+        .alert-yellow { background: #fef9c3; color: #713f12; }
+        .alert-orange { background: #ffedd5; color: #9a3412; }
+        .alert-red { background: #fee2e2; color: #991b1b; }
+
+        /* SECTION */
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            border: 1px solid #ebebf5;
+        }
+
+        .section-label {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: #5c5fd6;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #ebebf5;
+        }
+
+        /* SCORE GRID */
+        .score-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .score-card {
+            background: #f7f7ff;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            border: 1.5px solid #ebebf5;
+        }
+
+        .score-card-label { font-size: 0.82em; color: #888; margin-bottom: 10px; font-weight: 500; }
+
+        .score-card-value {
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #5c5fd6;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .score-card-severity { font-size: 0.88em; color: #555; font-weight: 600; }
+
+        /* INFO ROWS */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 0.9em;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #888; font-weight: 500; }
+        .info-value { color: #1a1a2e; font-weight: 600; text-align: right; max-width: 60%; }
+
+        /* RECOMMENDATION */
+        .recommendation {
+            background: #f0f4ff;
+            border-left: 3px solid #5c5fd6;
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendation h3 { color: #3a3dbf; font-size: 0.88em; font-weight: 700; margin-bottom: 6px; }
+        .recommendation p { color: #444; font-size: 0.88em; line-height: 1.7; }
+
+        /* TIER 2 NOTICE */
+        .tier2-notice {
+            background: #fffbeb;
+            border-left: 3px solid #f5a623;
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tier2-notice h3 { color: #8a6200; font-size: 0.88em; font-weight: 700; margin-bottom: 5px; }
+        .tier2-notice p { color: #8a6200; font-size: 0.85em; line-height: 1.6; }
+
+        /* ACTIONS */
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 13px 28px;
+            border-radius: 50px;
+            font-size: 0.92em;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .btn-primary { background: #5c5fd6; color: white; }
+        .btn-primary:hover { background: #4a4dbf; box-shadow: 0 6px 20px rgba(92,95,214,0.3); transform: translateY(-1px); }
+
+        .btn-secondary { background: white; color: #5c5fd6; border: 1.5px solid #d0d0eb; }
+        .btn-secondary:hover { border-color: #5c5fd6; background: #f7f7ff; transform: translateY(-1px); }
+
+        #tier2Section { display: none; }
+
+        @media (max-width: 640px) {
+            .container { padding: 70px 20px 40px; }
+            .score-grid { grid-template-columns: 1fr; }
+            .section { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header style="height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:1px solid #ebebf5;background:white;position:sticky;top:0;z-index:100;">
+        <a href="index.html" style="font-size:1.05em;font-weight:700;color:#1a1a2e;text-decoration:none;letter-spacing:-0.5px;">🧠 <span style="color:#5c5fd6;">Tâm</span>Khỏe</a>
+        <nav style="display:flex;align-items:center;gap:8px;">
+            <a href="contact-docter.html" style="padding:8px 18px;border-radius:50px;font-size:0.85em;font-weight:600;color:#5c5fd6;text-decoration:none;border:1.5px solid #d0d0eb;transition:all .15s;" onmouseover="this.style.background='#f7f7ff'" onmouseout="this.style.background='transparent'">👨‍⚕️ Tư Vấn Bác Sĩ</a>
+            <a href="dashboard.html" style="padding:8px 18px;border-radius:50px;font-size:0.85em;font-weight:600;color:#666;text-decoration:none;">📊 Lịch sử</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="loadingDiv" class="loading">
+            <div class="spinner"></div>
+            <p style="color:#888; font-size:0.9em;">Đang tải kết quả...</p>
+        </div>
+
+        <div id="resultsContent" style="display:none;">
+            <div class="result-header">
+                <h1> Kết Quả Sàng Lọc</h1>
+                <p class="sub">Chào <strong id="userName"></strong>, đây là kết quả sàng lọc của bạn</p>
+                <div class="alert-badge-wrap">
+                    <div class="alert-badge" id="alertBadge"></div>
+                </div>
+            </div>
+
+            <!-- TIER 2 NOTICE -->
+            <div id="tier2Notice" class="tier2-notice" style="display:none;">
+                <h3> Yêu Cầu Sàng Lọc Tầng 2</h3>
+                <p>Kết quả của bạn cho thấy cần phân tích thêm ở Tầng 2 với Machine Learning để đánh giá chính xác hơn dựa trên hành vi trả lời.</p>
+            </div>
+
+            <!-- TIER 1 -->
+            <div class="section">
+                <div class="section-label"> Kết Quả Tầng 1 — PHQ-7 & GAD-7</div>
+
+                <div class="score-grid">
+                    <div class="score-card">
+                        <div class="score-card-label">Điểm Trầm Cảm (PHQ-7)</div>
+                        <div class="score-card-value" id="phqScore">—</div>
+                        <div class="score-card-severity" id="phqSeverity">—</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-card-label">Điểm Lo Âu (GAD-7)</div>
+                        <div class="score-card-value" id="gadScore">—</div>
+                        <div class="score-card-severity" id="gadSeverity">—</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Nhóm Triệu Chứng</span>
+                    <span class="info-value" id="symptomGroup">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mức Cảnh Báo</span>
+                    <span class="info-value" id="alertLevel">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày Sàng Lọc</span>
+                    <span class="info-value" id="screeningDate">—</span>
+                </div>
+
+                <div class="recommendation">
+                    <h3> Khuyến Nghị Tầng 1</h3>
+                    <p id="recommendation1"></p>
+                </div>
+            </div>
+
+            <!-- TIER 2 -->
+            <div id="tier2Section" class="section">
+                <div class="section-label"> Kết Quả Tầng 2 — Phân Tích ML</div>
+
+                <div class="score-grid">
+                    <div class="score-card">
+                        <div class="score-card-label">Điểm Rủi Ro ML</div>
+                        <div class="score-card-value" id="mlRiskScore">—</div>
+                        <div class="score-card-severity" id="mlPrediction">—</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-card-label">Độ Tin Cậy</div>
+                        <div class="score-card-value" id="mlConfidence">—</div>
+                        <div class="score-card-severity">Confidence</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Cảnh Báo Tầng 2</span>
+                    <span class="info-value" id="tier2Alert">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Lý Do Cảnh Báo</span>
+                    <span class="info-value" id="tier2AlertReason">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cần Chuyên Gia</span>
+                    <span class="info-value" id="requiresHelp">—</span>
+                </div>
+
+                <div class="recommendation">
+                    <h3> Khuyến Nghị Tầng 2</h3>
+                    <p id="recommendation2"></p>
+                </div>
+            </div>
+
+            <!-- BANNER TƯ VẤN BÁC SĨ (hiện khi cần chuyên gia) -->
+            <div id="doctorBanner" style="display:none;background:linear-gradient(135deg,#fff1f2,#fff5f5);border:1.5px solid #fecaca;border-radius:14px;padding:20px 24px;margin-top:16px;align-items:center;gap:16px;">
+                <span style="font-size:1.8em;flex-shrink:0;"></span>
+                <div style="flex:1;">
+                    <div style="font-weight:700;color:#b91c1c;font-size:0.95em;margin-bottom:4px;">Bạn nên trao đổi với chuyên gia</div>
+                    <div style="font-size:0.84em;color:#7f1d1d;line-height:1.5;">Kết quả phân tích cho thấy bạn có thể cần hỗ trợ chuyên môn. Đội ngũ bác sĩ tâm lý sẵn sàng lắng nghe bạn.</div>
+                </div>
+                <a href="contact-docter.html" style="flex-shrink:0;padding:11px 24px;background:#ef4444;color:white;border-radius:50px;font-size:0.88em;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .18s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Liên Hệ Ngay →</a>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="actions">
+                <a href="screening-tier2.html" class="btn btn-primary" id="tier2Btn" style="display:none;">Tiếp Tục Tầng 2 →</a>
+                <a href="contact-docter.html" class="btn btn-primary" id="doctorBtn" style="display:none;background:#10b981;"> Tư Vấn Bác Sĩ</a>
+                <a href="dashboard.html" class="btn btn-secondary"> Lịch Sử</a>
+                <a href="index.html" class="btn btn-secondary">← Về Trang Chủ</a>
+                <a href="screening-tier1.html" class="btn btn-secondary"> Sàng Lọc Lại</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tier1Result = null;
+        let tier2Result = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const tier1Data = localStorage.getItem('tier1Result');
+                if (!tier1Data) {
+                    alert('Không tìm thấy kết quả Tầng 1. Vui lòng làm bài test trước!');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                tier1Result = JSON.parse(tier1Data);
+                const tier2Data = localStorage.getItem('tier2Result');
+                if (tier2Data) tier2Result = JSON.parse(tier2Data);
+                const userName = localStorage.getItem('userName');
+                if (userName) document.getElementById('userName').textContent = userName;
+                displayResults();
+            } catch (error) {
+                alert('Có lỗi khi tải kết quả: ' + error.message);
+            }
+        });
+
+        function displayResults() {
+            document.getElementById('loadingDiv').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+            displayTier1Results();
+            if (tier2Result && tier2Result.screeningId) {
+                displayTier2Results();
+            } else if (tier1Result.requiresTier2Screening) {
+                document.getElementById('tier2Notice').style.display = 'block';
+                document.getElementById('tier2Btn').style.display = 'inline-flex';
+            }
+        }
+
+        function displayTier1Results() {
+            document.getElementById('phqScore').textContent = tier1Result.phqTotalScore + '/21';
+            document.getElementById('phqSeverity').textContent = tier1Result.phqSeverityDescription || tier1Result.phqSeverity || 'N/A';
+            document.getElementById('gadScore').textContent = tier1Result.gadTotalScore + '/21';
+            document.getElementById('gadSeverity').textContent = tier1Result.gadSeverityDescription || tier1Result.gadSeverity || 'N/A';
+            document.getElementById('symptomGroup').textContent = tier1Result.symptomGroupDescription || tier1Result.symptomGroup || 'N/A';
+            document.getElementById('alertLevel').textContent = tier1Result.alertLevelDescription || tier1Result.alertLevel || 'N/A';
+            document.getElementById('recommendation1').textContent = tier1Result.recommendation || 'Không có khuyến nghị';
+            if (tier1Result.screeningDate) {
+                try { document.getElementById('screeningDate').textContent = new Date(tier1Result.screeningDate).toLocaleString('vi-VN'); }
+                catch (e) { document.getElementById('screeningDate').textContent = tier1Result.screeningDate; }
+            }
+            setAlertBadge(tier2Result ? tier2Result.tier2AlertLevel : tier1Result.alertLevel);
+        }
+
+        function displayTier2Results() {
+            document.getElementById('tier2Section').style.display = 'block';
+            document.getElementById('tier2Notice').style.display = 'none';
+            document.getElementById('tier2Btn').style.display = 'none';
+            document.getElementById('mlRiskScore').textContent = Math.round(tier2Result.mlRiskScore || 0) + '/100';
+            document.getElementById('mlPrediction').textContent = tier2Result.mlPredictionDescription || tier2Result.mlPrediction || 'N/A';
+            document.getElementById('mlConfidence').textContent = Math.round((tier2Result.mlConfidence || 0) * 100) + '%';
+            document.getElementById('tier2Alert').textContent = tier2Result.tier2AlertLevelDescription || tier2Result.tier2AlertLevel || 'N/A';
+            document.getElementById('tier2AlertReason').textContent = tier2Result.tier2AlertReason || 'Không có';
+            document.getElementById('requiresHelp').textContent = tier2Result.requiresProfessionalHelp ? '✅ Có' : '❌ Không';
+            document.getElementById('recommendation2').textContent = tier2Result.recommendation || 'Không có khuyến nghị';
+            setAlertBadge(tier2Result.tier2AlertLevel);
+
+            // Hiện banner + nút tư vấn bác sĩ khi cần chuyên gia
+            if (tier2Result.requiresProfessionalHelp ||
+                tier2Result.tier2AlertLevel === 'ORANGE' ||
+                tier2Result.tier2AlertLevel === 'RED') {
+                document.getElementById('doctorBanner').style.display = 'flex';
+                document.getElementById('doctorBtn').style.display = 'inline-flex';
+            }
+        }
+
+        function setAlertBadge(alertLevel) {
+            const el = document.getElementById('alertBadge');
+            if (!alertLevel) { el.style.display = 'none'; return; }
+            el.style.display = 'inline-flex';
+            const map = {
+                GREEN:  ['alert-green',  '🟢 An Toàn'],
+                YELLOW: ['alert-yellow', '🟡 Cảnh Báo Nhẹ'],
+                ORANGE: ['alert-orange', '🟠 Cảnh Báo Trung Bình'],
+                RED:    ['alert-red',    '🔴 Cảnh Báo Nghiêm Trọng']
+            };
+            const [cls, text] = map[alertLevel] || ['alert-green', alertLevel];
+            el.className = 'alert-badge ' + cls;
+            el.textContent = text;
+        }
+    </script>
+</body>
+</html>
