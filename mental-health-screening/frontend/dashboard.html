@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Sàng Lọc - Tâm Khỏe</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f7f7fc;
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+
+        /* HEADER */
+        .site-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            border-bottom: 1px solid #ebebf5;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 1.05em; font-weight: 700; color: #1a1a2e; letter-spacing: -0.5px; text-decoration: none; }
+        .logo span { color: #5c5fd6; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f0ff;
+            border-radius: 50px;
+            padding: 6px 16px 6px 6px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: #5c5fd6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+
+        .user-name { font-size: 0.88em; font-weight: 600; color: #3a3dbf; }
+
+        .btn-logout {
+            padding: 8px 18px;
+            background: white;
+            color: #888;
+            border: 1.5px solid #eee;
+            border-radius: 50px;
+            font-size: 0.85em;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-logout:hover { border-color: #ddd; color: #555; }
+
+        /* MAIN */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .page-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+
+        .page-sub { color: #888; font-size: 0.92em; margin-bottom: 32px; }
+
+        /* NEW SCREENING BTN */
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: #5c5fd6;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.92em;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .btn-primary:hover { background: #4a4dbf; box-shadow: 0 6px 20px rgba(92,95,214,0.3); transform: translateY(-1px); }
+
+        /* SUMMARY CARDS */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px 22px;
+            border: 1px solid #ebebf5;
+        }
+
+        .summary-label { font-size: 0.78em; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .summary-value { font-size: 2em; font-weight: 700; color: #1a1a2e; line-height: 1; margin-bottom: 4px; }
+        .summary-sub { font-size: 0.8em; color: #aaa; }
+
+        /* CHART */
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid #ebebf5;
+            margin-bottom: 28px;
+        }
+
+        .card-title {
+            font-size: 0.82em;
+            font-weight: 700;
+            color: #5c5fd6;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .chart-wrap { position: relative; height: 220px; }
+
+        /* HISTORY LIST */
+        .history-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid #ebebf5;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 10px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .history-item:last-child { border-bottom: none; }
+        .history-item:hover { background: #fafafa; }
+
+        .history-date {
+            flex: 0 0 110px;
+            font-size: 0.82em;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .history-scores {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .score-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f7f7ff;
+            border-radius: 10px;
+            padding: 8px 14px;
+            min-width: 64px;
+        }
+
+        .score-chip-label { font-size: 0.72em; color: #999; font-weight: 600; margin-bottom: 2px; }
+        .score-chip-value { font-size: 1.15em; font-weight: 700; color: #5c5fd6; }
+
+        .ml-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 10px;
+            padding: 8px 14px;
+            min-width: 80px;
+            font-size: 0.82em;
+            font-weight: 600;
+        }
+
+        .ml-chip-label { font-size: 0.72em; font-weight: 600; margin-bottom: 2px; opacity: 0.7; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .badge-green  { background: #d1fae5; color: #065f46; }
+        .badge-yellow { background: #fef9c3; color: #713f12; }
+        .badge-orange { background: #ffedd5; color: #9a3412; }
+        .badge-red    { background: #fee2e2; color: #991b1b; }
+
+        .chevron { color: #ccc; font-size: 1.1em; margin-left: auto; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #bbb;
+        }
+
+        .empty-icon { font-size: 3.5em; margin-bottom: 16px; }
+        .empty-text { font-size: 0.95em; font-weight: 500; margin-bottom: 20px; color: #999; }
+
+        /* LOADING */
+        .loading-state {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #5c5fd6;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 700px) {
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .history-scores { flex-wrap: wrap; gap: 8px; }
+            .container { padding: 24px 16px 80px; }
+            .site-header { padding: 0 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <a href="index.html" class="logo"> <span>Tâm</span>Khỏe</a>
+    <div class="header-right">
+        <a href="contact-docter.html" style="padding:8px 18px;border-radius:50px;font-size:0.85em;font-weight:600;color:#5c5fd6;text-decoration:none;border:1.5px solid #d0d0eb;transition:all .15s;" onmouseover="this.style.background='#f7f7ff'" onmouseout="this.style.background='transparent'">👨‍⚕️ Tư Vấn Bác Sĩ</a>
+        <div class="user-badge">
+            <div class="avatar" id="avatarLetter">?</div>
+            <span class="user-name" id="headerName">...</span>
+        </div>
+        <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="action-row">
+        <div>
+            <h1 class="page-title">Lịch Sử Sàng Lọc</h1>
+            <p class="page-sub" id="pageSubtitle">Đang tải...</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="contact-docter.html" class="btn-primary" style="background:white;color:#5c5fd6;border:1.5px solid #d0d0eb;box-shadow:none;"> Tư Vấn Bác Sĩ</a>
+            <a href="screening-tier1.html" class="btn-primary">+ Sàng Lọc Mới</a>
+        </div>
+    </div>
+
+    <!-- BANNER TƯ VẤN (hiện khi có kết quả nguy cơ cao) -->
+    <div id="doctorBanner" style="display:none;background:linear-gradient(135deg,#fff1f2,#fff5f5);border:1.5px solid #fecaca;border-radius:14px;padding:18px 24px;margin-bottom:24px;display:none;align-items:center;gap:16px;">
+        <span style="font-size:1.8em;flex-shrink:0;">⚠️</span>
+        <div style="flex:1;">
+            <div style="font-weight:700;color:#b91c1c;font-size:0.95em;margin-bottom:3px;">Kết quả gần nhất cho thấy nguy cơ đáng chú ý</div>
+            <div style="font-size:0.84em;color:#7f1d1d;">Bạn nên tham khảo ý kiến chuyên gia sức khỏe tâm thần sớm.</div>
+        </div>
+        <a href="contact-docter.html" style="flex-shrink:0;padding:10px 22px;background:#ef4444;color:white;border-radius:50px;font-size:0.84em;font-weight:700;text-decoration:none;transition:all .18s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Liên Hệ Bác Sĩ →</a>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <p style="color:#aaa; font-size:0.9em;">Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- CONTENT (ẩn cho đến khi load xong) -->
+    <div id="content" style="display:none;">
+
+        <!-- SUMMARY -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Tổng lần sàng lọc</div>
+                <div class="summary-value" id="totalCount">0</div>
+                <div class="summary-sub">lần</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">PHQ trung bình</div>
+                <div class="summary-value" id="avgPhq">—</div>
+                <div class="summary-sub">/ 21</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">GAD trung bình</div>
+                <div class="summary-value" id="avgGad">—</div>
+                <div class="summary-sub">/ 21</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">ML Risk trung bình</div>
+                <div class="summary-value" id="avgMl">—</div>
+                <div class="summary-sub">/ 100</div>
+            </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-card" id="chartCard" style="display:none;">
+            <div class="card-title"> Biểu Đồ Tiến Trình</div>
+            <div class="chart-wrap">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+
+        <!-- HISTORY LIST -->
+        <div class="history-card">
+            <div class="card-title"> Danh Sách Sàng Lọc</div>
+            <div id="historyList"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API = 'https://do-an-0973.onrender.com/api';
+
+    // ── Auth guard ────────────────────────────────────────────────────
+    const token    = localStorage.getItem('authToken');
+    const userName = localStorage.getItem('userName') || '';
+
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    // Header info
+    document.getElementById('headerName').textContent  = userName;
+    document.getElementById('avatarLetter').textContent = userName.charAt(0).toUpperCase() || '?';
+
+    // ── Load history ──────────────────────────────────────────────────
+    async function loadHistory() {
+        try {
+            const res  = await fetch(`${API}/auth/history`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.status === 401) {
+                logout(); return;
+            }
+
+            const data = await res.json();
+            renderDashboard(data);
+
+        } catch (err) {
+            document.getElementById('loadingState').innerHTML =
+                '<p style="color:#e05;text-align:center;">Không thể kết nối server</p>';
+        }
+    }
+
+    function renderDashboard(data) {
+        const history = data.history || [];
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('content').style.display      = 'block';
+        document.getElementById('pageSubtitle').textContent   =
+            `Xin chào, ${userName} — bạn đã sàng lọc ${history.length} lần`;
+
+        // Hiện banner tư vấn nếu lần gần nhất có nguy cơ ORANGE hoặc RED
+        if (history.length > 0) {
+            const latest = history[0];
+            const alertLv = latest.tier2?.tier2AlertLevel || latest.alertLevel || '';
+            if (alertLv === 'ORANGE' || alertLv === 'RED') {
+                document.getElementById('doctorBanner').style.display = 'flex';
+            }
+        }
+
+        // ── Summary stats ────────────────────────────────────────────
+        document.getElementById('totalCount').textContent = history.length;
+
+        if (history.length > 0) {
+            const avgPhq = avg(history.map(h => h.phqTotalScore));
+            const avgGad = avg(history.map(h => h.gadTotalScore));
+            const mlItems = history.filter(h => h.tier2?.mlRiskScore != null);
+            const avgMl  = mlItems.length ? avg(mlItems.map(h => h.tier2.mlRiskScore)) : null;
+
+            document.getElementById('avgPhq').textContent = avgPhq.toFixed(1);
+            document.getElementById('avgGad').textContent = avgGad.toFixed(1);
+            document.getElementById('avgMl').textContent  = avgMl != null ? avgMl.toFixed(0) : '—';
+
+            // ── Chart ────────────────────────────────────────────────
+            if (history.length >= 2) {
+                document.getElementById('chartCard').style.display = 'block';
+                renderChart(history);
+            }
+
+            // ── List ─────────────────────────────────────────────────
+            renderList(history);
+
+        } else {
+            document.getElementById('historyList').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon"></div>
+                    <div class="empty-text">Bạn chưa có lần sàng lọc nào</div>
+                    <a href="screening-tier1.html" class="btn-primary">Bắt Đầu Ngay →</a>
+                </div>`;
+        }
+    }
+
+    function renderChart(history) {
+        // Lấy 10 lần gần nhất, hiển thị theo thứ tự tăng dần
+        const items   = [...history].reverse().slice(-10);
+        const labels  = items.map((h, i) => {
+            const d = new Date(h.screeningDate);
+            return `${d.getDate()}/${d.getMonth()+1}`;
+        });
+
+        const phqData = items.map(h => h.phqTotalScore);
+        const gadData = items.map(h => h.gadTotalScore);
+        const mlData  = items.map(h => h.tier2?.mlRiskScore
+            ? Math.round(h.tier2.mlRiskScore / 100 * 21)  // scale về 0-21 để so sánh
+            : null);
+
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'PHQ-7',
+                        data: phqData,
+                        borderColor: '#5c5fd6',
+                        backgroundColor: 'rgba(92,95,214,0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#5c5fd6',
+                        pointRadius: 5,
+                    },
+                    {
+                        label: 'GAD-7',
+                        data: gadData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#f59e0b',
+                        pointRadius: 5,
+                    },
+                    {
+                        label: 'ML Risk (scaled)',
+                        data: mlData,
+                        borderColor: '#ef4444',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false,
+                        pointBackgroundColor: '#ef4444',
+                        pointRadius: 4,
+                        spanGaps: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 14 } }
+                },
+                scales: {
+                    y: {
+                        min: 0, max: 21,
+                        grid: { color: '#f0f0f0' },
+                        ticks: { font: { family: 'DM Sans' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'DM Sans' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderList(history) {
+        const container = document.getElementById('historyList');
+
+        if (history.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-icon"></div><div class="empty-text">Chưa có dữ liệu</div></div>';
+            return;
+        }
+
+        container.innerHTML = history.map((h, idx) => {
+            const date    = new Date(h.screeningDate);
+            const dateStr = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+            const timeStr = `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+
+            const alertBadge = alertBadgeHtml(h.tier2?.tier2AlertLevel || h.alertLevel);
+
+            const mlScore = h.tier2?.mlRiskScore != null
+                ? `<div class="score-chip">
+                       <span class="score-chip-label">ML Risk</span>
+                       <span class="score-chip-value" style="color:#ef4444">${Math.round(h.tier2.mlRiskScore)}</span>
+                   </div>` : '';
+
+            const mlConf = h.tier2?.mlConfidence != null
+                ? `<div class="score-chip">
+                       <span class="score-chip-label">Độ tin cậy</span>
+                       <span class="score-chip-value" style="font-size:0.95em">${Math.round(h.tier2.mlConfidence*100)}%</span>
+                   </div>` : '';
+
+            return `
+            <div class="history-item" onclick="viewDetail(${idx})">
+                <div class="history-date">
+                    <div style="font-weight:600;color:#444">${dateStr}</div>
+                    <div>${timeStr}</div>
+                </div>
+                <div class="history-scores">
+                    <div class="score-chip">
+                        <span class="score-chip-label">PHQ-7</span>
+                        <span class="score-chip-value">${h.phqTotalScore}</span>
+                    </div>
+                    <div class="score-chip">
+                        <span class="score-chip-label">GAD-7</span>
+                        <span class="score-chip-value">${h.gadTotalScore}</span>
+                    </div>
+                    ${mlScore}
+                    ${mlConf}
+                </div>
+                ${alertBadge}
+                <div class="chevron">›</div>
+            </div>`;
+        }).join('');
+    }
+
+    function alertBadgeHtml(level) {
+        const map = {
+            GREEN:  ['badge-green',  '🟢 An toàn'],
+            YELLOW: ['badge-yellow', '🟡 Nhẹ'],
+            ORANGE: ['badge-orange', '🟠 Trung bình'],
+            RED:    ['badge-red',    '🔴 Nghiêm trọng'],
+        };
+        if (!level || !map[level]) return '';
+        const [cls, text] = map[level];
+        return `<span class="badge ${cls}">${text}</span>`;
+    }
+
+    function viewDetail(idx) {
+        // TODO: mở modal hoặc chuyển sang trang detail
+        // Hiện tại lưu vào localStorage rồi mở results.html
+        const historyData = window._historyData;
+        if (!historyData) return;
+        const item = historyData[idx];
+        if (item.tier2) localStorage.setItem('tier2Result', JSON.stringify(item.tier2));
+        localStorage.setItem('tier1Result', JSON.stringify({
+            screeningId:          item.tier1Id,
+            phqTotalScore:        item.phqTotalScore,
+            gadTotalScore:        item.gadTotalScore,
+            phqSeverity:          item.phqSeverity,
+            gadSeverity:          item.gadSeverity,
+            symptomGroup:         item.symptomGroup,
+            alertLevel:           item.alertLevel,
+            screeningDate:        item.screeningDate,
+            requiresTier2Screening: false,
+        }));
+        window.location.href = 'results.html';
+    }
+
+    function avg(arr) {
+        const valid = arr.filter(v => v != null);
+        return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+    }
+
+    function logout() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+    }
+
+    // Lưu data để dùng trong viewDetail
+    const _origRender = renderDashboard;
+    window.renderDashboard = function(data) {
+        window._historyData = data.history || [];
+        _origRender(data);
+    };
+
+    loadHistory();
+</script>
+</body>
+</html>
