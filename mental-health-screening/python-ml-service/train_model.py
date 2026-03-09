@@ -59,11 +59,7 @@ CONFIDENCE_THRESHOLD = 0.60
 
 
 class MentalHealthDataGenerator:
-    """
-    Sinh dữ liệu huấn luyện mô phỏng thực tế dựa trên 23 features.
-    Sau khi sinh ngẫu nhiên, áp quy tắc lâm sàng cứng lên nhãn để đảm bảo
-    ML không bao giờ học được rằng PHQ/GAD cực cao có thể là rủi ro thấp.
-    """
+   
 
     def __init__(self, n_samples: int = 6000, random_seed: int = 42):
         self.n_samples = n_samples
@@ -268,9 +264,9 @@ class ModelTrainer:
         scaler_kb = os.path.getsize(os.path.join(output_dir, "scaler.pkl"))      / 1024
 
         _banner("ĐÃ LƯU MODEL v3.0")
-        print(f"  ✅ models/risk_model.pkl        ({model_kb:.1f} KB)")
-        print(f"  ✅ models/scaler.pkl            ({scaler_kb:.1f} KB)")
-        print(f"  ✅ models/model_metadata.json")
+        print(f"   models/risk_model.pkl        ({model_kb:.1f} KB)")
+        print(f"   models/scaler.pkl            ({scaler_kb:.1f} KB)")
+        print(f"   models/model_metadata.json")
 
     #  Private 
 
@@ -304,7 +300,7 @@ class ModelTrainer:
             X_res, y_res = smote.fit_resample(self._X_train, y_train)
             print(f"  SMOTE: CRITICAL {n_critical} → {int((y_res==3).sum())} mẫu ✅")
         except ImportError:
-            print("  ⚠️  imbalanced-learn chưa cài → bỏ qua SMOTE")
+            print("    imbalanced-learn chưa cài → bỏ qua SMOTE")
             print("      Cài bằng: pip install imbalanced-learn")
             X_res, y_res = self._X_train, y_train
 
@@ -366,7 +362,7 @@ class ModelTrainer:
         # Chỉ số quan trọng nhất: CRITICAL recall (bỏ sót = nguy hiểm)
         critical_recall = cm[3][3] / max(cm[3].sum(), 1)
         print()
-        flag = "✅" if critical_recall >= 0.80 else "❌ CẢNH BÁO"
+        flag = "✅" if critical_recall >= 0.80 else " CẢNH BÁO"
         print(f"  {flag}  CRITICAL recall : {critical_recall:.3f}  "
               f"(ngưỡng an toàn >= 0.80)")
 
@@ -407,34 +403,7 @@ def apply_clinical_floor(
     gad_score: int,
     ml_confidence: float = 1.0,
 ) -> dict:
-    """
-    Đảm bảo kết quả ML không bao giờ downgrade so với điểm PHQ/GAD tầng 1.
-
-    Quy tắc (theo thứ tự ưu tiên):
-      1. PHQ >= 18 hoặc GAD >= 18  → bắt buộc CRITICAL_RISK
-      2. PHQ >= 15 hoặc GAD >= 15  → tối thiểu HIGH_RISK
-      3. PHQ >= 10 hoặc GAD >= 10  → tối thiểu MODERATE_RISK
-      4. ML confidence < 60%       → tăng 1 bậc an toàn
-
-    Parameters
-    ----------
-    ml_risk_index : int
-        Chỉ số rủi ro do ML dự đoán (0=LOW … 3=CRITICAL)
-    phq_score : int
-        Tổng điểm PHQ-7 (0–21)
-    gad_score : int
-        Tổng điểm GAD-7 (0–21)
-    ml_confidence : float
-        max(predict_proba) – xác suất cao nhất; mặc định 1.0 nếu không có
-
-    Returns
-    -------
-    dict:
-        final_risk_index  – chỉ số rủi ro cuối cùng
-        final_risk_label  – nhãn tương ứng
-        was_overridden    – True nếu ML bị override
-        override_reasons  – danh sách lý do override
-    """
+   
     floor_index      = 0
     override_reasons = []
 
@@ -455,9 +424,6 @@ def apply_clinical_floor(
             f"PHQ={phq_score} hoặc GAD={gad_score} >= 10 → tối thiểu MODERATE_RISK"
         )
 
-    # Confidence threshold – chỉ áp khi PHQ/GAD đủ cao để đáng lo ngại
-    # Nếu PHQ + GAD <= 9 (GREEN hoàn toàn), không tăng bậc dù confidence thấp
-    # vì behavioral noise không đủ cơ sở lâm sàng để cảnh báo
     if ml_confidence < CONFIDENCE_THRESHOLD and (phq_score + gad_score) >= 10:
         safe_floor = min(ml_risk_index + 1, 3)
         if safe_floor > floor_index:
@@ -498,12 +464,12 @@ def main():
         print(f"    [{cat_idx}] {RISK_CATEGORIES[cat_idx]:<18} : {count:>5} mẫu  "
               f"({count/len(df)*100:.1f}%)")
 
-    # Kiểm tra tính toàn vẹn
+    # tính toàn vẹn
     v_crit = df[(df["phq_total_score"] >= 18) & (df["risk_category"] < 3)]
     v_high = df[(df["phq_total_score"] >= 15) & (df["risk_category"] < 2)]
     ok = len(v_crit) == 0 and len(v_high) == 0
     print()
-    print(f"  Kiểm tra floor rule: {'✅ PASSED' if ok else '❌ FAILED'}")
+    print(f"  Kiểm tra floor rule: {' PASSED' if ok else '❌ FAILED'}")
     if not ok:
         print(f"    - CRITICAL violations : {len(v_crit)}")
         print(f"    - HIGH violations     : {len(v_high)}")
@@ -511,16 +477,13 @@ def main():
     os.makedirs("data", exist_ok=True)
     df.to_csv("data/training_data_v3.csv", index=False, encoding="utf-8-sig")
     print()
-    print("  ✅ Dữ liệu lưu tại: data/training_data_v3.csv")
+    print("   Dữ liệu lưu tại: data/training_data_v3.csv")
 
-    # 2. Train
     trainer = ModelTrainer()
     trainer.run(df)
 
-    # 3. Save
     trainer.save()
 
-    # 4. Demo với test case từ bug report ban đầu
     _banner("DEMO – TEST CASE BUG REPORT")
     print("  Input: PHQ=21, GAD=21 | ML dự đoán: LOW (0) | confidence: 81%")
     result = apply_clinical_floor(

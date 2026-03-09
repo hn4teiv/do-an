@@ -1,8 +1,8 @@
 """
-Test Script - Mental Health Risk Prediction Model v2.0
+Test Script - Mental Health Risk Prediction Model v3.0
 =======================================================
-Kiểm tra model với 20 features:
-  7 behavioral + 2 tier1 (PHQ/GAD) + 11 demographics
+Kiểm tra model với 23 features:
+  8 behavioral + 4 tier1 (PHQ/GAD + interaction) + 11 demographics
 
 Cách dùng:
   python test_model.py              # chạy test cases có sẵn
@@ -15,20 +15,23 @@ import json
 import os
 import sys
 
-# ── Tên 20 features (đúng thứ tự khi train) ────────────────────────────
+
 FEATURE_NAMES = [
-    # Behavioral (7)
+    # Behavioral (8)
     "avg_response_time",
     "response_time_variance",
     "total_changes",
     "hesitation_score",
     "consistency_score",
-    "extreme_ratio",
+    "max_severity_ratio",       # tỷ lệ chọn mức 3 (nặng nhất)
+    "min_severity_ratio",       # tỷ lệ chọn mức 0 (không có)
     "neutral_ratio",
-    # Tier 1 (2)
+   
     "phq_total_score",
     "gad_total_score",
-    # Demographics (11)
+    "phq_gad_product",          # PHQ × GAD
+    "combined_severity",        # (PHQ + GAD) / 42
+   
     "age",
     "gender_encoded",
     "occupation_encoded",
@@ -45,10 +48,6 @@ FEATURE_NAMES = [
 CATEGORIES = ["LOW_RISK", "MODERATE_RISK", "HIGH_RISK", "CRITICAL_RISK"]
 
 
-# ─────────────────────────────────────────────
-#  LOAD MODEL
-# ─────────────────────────────────────────────
-
 def load_model():
     paths = {
         "model":    "models/risk_model.pkl",
@@ -57,7 +56,7 @@ def load_model():
     }
     for k, p in paths.items():
         if not os.path.exists(p):
-            print(f"❌  File không tồn tại: {p}")
+            print(f"  File không tồn tại: {p}")
             print("    Hãy chạy: python train_model.py")
             return None, None, None
 
@@ -68,16 +67,15 @@ def load_model():
     return model, scaler, metadata
 
 
-# ─────────────────────────────────────────────
-#  PREDICT HELPER
-# ─────────────────────────────────────────────
 
 def predict(model, scaler, features: list) -> dict:
-    x_scaled = scaler.transform(np.array(features, dtype=float).reshape(1, -1))
+    import pandas as pd
+    x_df     = pd.DataFrame([features], columns=FEATURE_NAMES)
+    x_scaled = scaler.transform(x_df)
     proba    = model.predict_proba(x_scaled)[0]
     pred_idx = model.predict(x_scaled)[0]
 
-    # Risk score tổng hợp (0–100)
+   
     risk_score = (
         proba[0] * 15 +   # LOW_RISK      → trung tâm 15
         proba[1] * 40 +   # MODERATE_RISK → trung tâm 40
@@ -92,9 +90,17 @@ def predict(model, scaler, features: list) -> dict:
     }
 
 
-# ─────────────────────────────────────────────
-#  TEST CASES
-# ─────────────────────────────────────────────
+def _interaction(phq, gad):
+    return phq * gad, round((phq + gad) / 42.0, 4)
+
+# PHQ=3, GAD=4 → product=12, severity=0.1667
+_p1, _s1 = _interaction(3, 4)
+# PHQ=8, GAD=9 → product=72, severity=0.4048
+_p2, _s2 = _interaction(8, 9)
+# PHQ=13, GAD=14 → product=182, severity=0.6429
+_p3, _s3 = _interaction(13, 14)
+# PHQ=19, GAD=18 → product=342, severity=0.8810
+_p4, _s4 = _interaction(19, 18)
 
 TEST_CASES = [
     {
@@ -102,13 +108,12 @@ TEST_CASES = [
         "description": "Trả lời nhanh, nhất quán; PHQ/GAD thấp; ngủ đủ giấc, có hỗ trợ xã hội tốt",
         "expected":    "LOW_RISK",
         "features": [
-            # Behavioral
-            3000, 500_000, 1, 0.08, 0.93, 0.12, 0.68,
-            # Tier 1
-            3, 4,
-            # Demographics: age=28, Nam, Nhân viên VP, ĐH, Độc thân,
-            #               Thu nhập trung bình, Sống cùng gia đình,
-            #               Không bệnh mãn tính, ngủ 8h, tập 2-3/tuần, ss=5
+            # Behavioral (8)
+            3000, 500_000, 1, 0.08, 0.93, 0.10, 0.72, 0.68,
+            # Tier 1 + interaction (4)
+            3, 4, _p1, _s1,
+            # Demographics (11): age=28, Nam, VP, ĐH, Độc thân,
+            #   TB, Gia đình, Không bệnh, 8h, 2-3/tuần, ss=5
             28, 0, 1, 2, 0, 1, 1, 0, 8.0, 2, 5,
         ],
     },
@@ -117,13 +122,12 @@ TEST_CASES = [
         "description": "Trả lời hơi chậm; PHQ/GAD mức nhẹ; ít tập thể dục",
         "expected":    "MODERATE_RISK",
         "features": [
-            # Behavioral
-            8000, 2_200_000, 7, 0.36, 0.62, 0.32, 0.48,
-            # Tier 1
-            8, 9,
-            # Demographics: age=34, Nữ, Nhân viên VP, THPT, Đã kết hôn,
-            #               Thu nhập trung bình, Sống cùng gia đình,
-            #               Không bệnh, ngủ 6.5h, <1/tuần, ss=3
+            # Behavioral (8)
+            8000, 2_200_000, 7, 0.36, 0.62, 0.28, 0.42, 0.48,
+            # Tier 1 + interaction (4)
+            8, 9, _p2, _s2,
+            # Demographics (11): age=34, Nữ, VP, THPT, Kết hôn,
+            #   TB, Gia đình, Không bệnh, 6.5h, <1/tuần, ss=3
             34, 1, 1, 1, 1, 1, 1, 0, 6.5, 1, 3,
         ],
     },
@@ -132,13 +136,12 @@ TEST_CASES = [
         "description": "Chậm, nhiều do dự; PHQ/GAD mức vừa; thất nghiệp, ít ngủ",
         "expected":    "HIGH_RISK",
         "features": [
-            # Behavioral
-            17000, 6_800_000, 19, 0.64, 0.36, 0.58, 0.28,
-            # Tier 1
-            13, 14,
-            # Demographics: age=42, Nam, Thất nghiệp, THPT, Ly hôn,
-            #               Thu nhập thấp, Sống một mình,
-            #               Có bệnh mãn tính, ngủ 5h, không tập, ss=2
+            # Behavioral (8)
+            17000, 6_800_000, 19, 0.64, 0.36, 0.52, 0.18, 0.28,
+            # Tier 1 + interaction (4)
+            13, 14, _p3, _s3,
+            # Demographics (11): age=42, Nam, Thất nghiệp, THPT, Ly hôn,
+            #   Thấp, Một mình, Có bệnh, 5h, không tập, ss=2
             42, 0, 3, 1, 2, 0, 0, 1, 5.0, 0, 2,
         ],
     },
@@ -147,26 +150,23 @@ TEST_CASES = [
         "description": "Rất chậm, cực kỳ không ổn; PHQ/GAD rất cao; nhiều yếu tố nguy cơ",
         "expected":    "CRITICAL_RISK",
         "features": [
-            # Behavioral
-            28000, 14_000_000, 35, 0.86, 0.12, 0.84, 0.07,
-            # Tier 1
-            19, 18,
-            # Demographics: age=22, Nữ, Thất nghiệp, THCS, Độc thân,
-            #               Thu nhập thấp, Sống một mình,
-            #               Có bệnh mãn tính, ngủ 4h, không tập, ss=1
+            # Behavioral (8)
+            28000, 14_000_000, 35, 0.86, 0.12, 0.82, 0.05, 0.07,
+            # Tier 1 + interaction (4)
+            19, 18, _p4, _s4,
+            # Demographics (11): age=22, Nữ, Thất nghiệp, THCS, Độc thân,
+            #   Thấp, Một mình, Có bệnh, 4h, không tập, ss=1
             22, 1, 3, 0, 0, 0, 0, 1, 4.0, 0, 1,
         ],
     },
 ]
 
 
-# ─────────────────────────────────────────────
-#  RUNNERS
-# ─────────────────────────────────────────────
+
 
 def run_tests():
     print("=" * 72)
-    print("  TESTING MODEL v2.0  (20 features = behavioral + tier1 + demographics)")
+    print("  TESTING MODEL v3.0  (23 features = behavioral + tier1 + demographics)")
     print("=" * 72)
 
     model, scaler, metadata = load_model()
@@ -187,9 +187,9 @@ def run_tests():
 
         print(f"\n  Features ({len(tc['features'])} giá trị):")
         groups = [
-            ("Behavioral [1-7]",       tc["features"][0:7],  FEATURE_NAMES[0:7]),
-            ("Tier 1     [8-9]",        tc["features"][7:9],  FEATURE_NAMES[7:9]),
-            ("Demographics [10-20]",   tc["features"][9:20], FEATURE_NAMES[9:20]),
+            ("Behavioral [1-8]",       tc["features"][0:8],   FEATURE_NAMES[0:8]),
+            ("Tier 1 + Interaction [9-12]", tc["features"][8:12],  FEATURE_NAMES[8:12]),
+            ("Demographics [13-23]",   tc["features"][12:23], FEATURE_NAMES[12:23]),
         ]
         for grp_name, vals, names in groups:
             print(f"    ── {grp_name}")
@@ -207,21 +207,21 @@ def run_tests():
 
         ok = result["category"] == tc["expected"]
         if ok:
-            print(f"\n  ✅ ĐÚNG!  (expected: {tc['expected']})")
+            print(f"\n   ĐÚNG!  (expected: {tc['expected']})")
             correct += 1
         else:
-            print(f"\n  ❌ SAI!   (expected: {tc['expected']}, got: {result['category']})")
+            print(f"\n   SAI!   (expected: {tc['expected']}, got: {result['category']})")
 
     total   = len(TEST_CASES)
     acc_pct = correct / total * 100
     print(f"\n{'='*72}")
     print(f"  KẾT QUẢ: {correct}/{total} đúng  →  Accuracy = {acc_pct:.1f}%")
     if acc_pct == 100:
-        print("  🎉 Tất cả test cases đều chính xác!")
+        print("   Tất cả test cases đều chính xác!")
     elif acc_pct >= 75:
-        print("  ✅ Model hoạt động tốt")
+        print("   Model hoạt động tốt")
     else:
-        print("  ⚠️  Model cần được cải thiện – hãy chạy lại train_model.py")
+        print("    Model cần được cải thiện – hãy chạy lại train_model.py")
     print()
 
 
@@ -236,6 +236,8 @@ def run_interactive():
         return
 
     legends = {
+        "phq_gad_product":    "PHQ × GAD (tính tự động hoặc nhập thủ công)",
+        "combined_severity":  "(PHQ + GAD) / 42  → 0.0–1.0",
         "gender_encoded":     "0=Nam  1=Nữ  2=Khác",
         "occupation_encoded": "0=Học sinh/SV  1=NV Văn phòng  2=Lao động  3=Thất nghiệp  4=Hưu  5=Khác",
         "education_encoded":  "0=THCS  1=THPT  2=Cao đẳng/ĐH  3=Sau ĐH",
@@ -247,20 +249,52 @@ def run_interactive():
     }
 
     while True:
-        print("\nNhập giá trị 20 features:")
+        print("\nNhập giá trị 23 features:")
         features = []
         cancelled = False
+        phq_val = None
+        gad_val = None
+
         for idx, name in enumerate(FEATURE_NAMES, 1):
             hint = legends.get(name, "")
+
+            # Tự động tính interaction features nếu đã có PHQ + GAD
+            if name == "phq_gad_product" and phq_val is not None and gad_val is not None:
+                auto_val = phq_val * gad_val
+                print(f"  {idx:>2}. {name:<30}(tự động = {auto_val}): ", end="")
+                raw = input().strip()
+                val = float(raw) if raw and raw.lower() != "q" else auto_val
+                if raw.lower() == "q":
+                    cancelled = True
+                    break
+                features.append(val)
+                continue
+
+            if name == "combined_severity" and phq_val is not None and gad_val is not None:
+                auto_val = round((phq_val + gad_val) / 42.0, 4)
+                print(f"  {idx:>2}. {name:<30}(tự động = {auto_val}): ", end="")
+                raw = input().strip()
+                val = float(raw) if raw and raw.lower() != "q" else auto_val
+                if raw.lower() == "q":
+                    cancelled = True
+                    break
+                features.append(val)
+                continue
+
             prompt = f"  {idx:>2}. {name:<30}{('('+hint+')') if hint else ''}: "
             val = input(prompt).strip()
             if val.lower() == "q":
                 cancelled = True
                 break
             try:
-                features.append(float(val))
+                fval = float(val)
+                features.append(fval)
+                if name == "phq_total_score":
+                    phq_val = fval
+                elif name == "gad_total_score":
+                    gad_val = fval
             except ValueError:
-                print("     ⚠️  Giá trị không hợp lệ, mặc định = 0")
+                print("       Giá trị không hợp lệ, mặc định = 0")
                 features.append(0.0)
 
         if cancelled:
@@ -282,9 +316,6 @@ def run_interactive():
     print("  Tạm biệt!")
 
 
-# ─────────────────────────────────────────────
-#  ENTRY POINT
-# ─────────────────────────────────────────────
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "interactive":
